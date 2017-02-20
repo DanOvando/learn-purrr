@@ -41,7 +41,7 @@ Full credit to Jenny Bryan's [excellent `purrr` tutorial](https://jennybc.github
 ## What is `purrr`?
 
 
-`purrr` is a part of the tidyverse, taking on the tasks accomplised by the `apply` suite of functions in base R. It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At it's most complext, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data. 
+`purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R. It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At it's most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data. 
 
 There are a whole suite of functions involved with `purrr`, but the goal of this tutorial is to get the fundamentals down so that you can start incorporating `purrr` into your own code and explore higher-level abilities on your own. 
 
@@ -91,7 +91,7 @@ pmap(list(list1,list2,list3), function,...)
 
 ```
 
-This is where things start to improve substantially on `apply`: instead of having to smash all the things you want to apply a function over into one dataframe, you can easily pass multiple named inputs to a function
+This is where things start to improve substantially on `apply`: instead of having to smash all the things you want to apply a function over into one data frame, you can easily pass multiple named inputs to a function
 
 Let's start with the `got_chars` data from the `repurrrsive` package
 
@@ -101,7 +101,7 @@ str(got_chars, list.len = 3)
 ```
 
 
-Suppose we wanted to figure out how many aliases and aliances each character has, as well as where they were born. We can use `pmap` to apply a function over each of these attributes
+Suppose we wanted to figure out how many aliases and alliances each character has, as well as where they were born. We can use `pmap` to apply a function over each of these attributes
 
 ```{r}
 got_list <- got_chars %>% 
@@ -162,7 +162,7 @@ foo(2,3)
 z
 ```
 
-Notice that `z` wasn't affected by the `z` inside the function. Operations inside functions happen in the local environment of that functin. "What happens in the function, stays in the function (except what you share on facebook)"
+Notice that `z` wasn't affected by the `z` inside the function. Operations inside functions happen in the local environment of that function. "What happens in the function, stays in the function (except what you share on Facebook)"
 
 Note though that functions can "see" objects in the global environment
 
@@ -182,7 +182,7 @@ foo(2,3)
 
 ```
 
-I strongly recommend you avoid relying on global variables inside functions: it can very easily cause unintentded and sneaky behavior.
+I strongly recommend you avoid relying on global variables inside functions: it can very easily cause unintended and sneaky behavior.
 
 Functions can be as complicated as you want them to be, but a good rule is to try and make sure each function is good at doing *one* thing. That doesn't mean that that "one thing" can't be a complex series of operation, but the objective of the function should be to produce that one thing well. E.g., write one function to process your data, one function to run your model, one function to diagnose your model, etc. 
 
@@ -203,7 +203,7 @@ map(mtcars, foo)
 
 ```
 
-Can be accomplised using
+Can be accomplished using
 
 ```{r}
 
@@ -366,7 +366,7 @@ Hmmm, that doesn't look good, what's up with Will? What happens if I try and use
 
 ```
 
-Can fix that with a bit of a hack. There's almost certainly a better way, but this just shows that things get a little more complicated when you're trying to apply functions across list objects; things like dimensions, types, NULLs, can cause problems. If I'm trying something new, I'll usually try and develop the methods on a subset of the list that I know is "ideal", make sure it works there, and then try the operation on progressively more complicated lists. That allows me to seperate errors in my functions vs. problems reading in "odd" data types. 
+Can fix that with a bit of a hack. There's almost certainly a better way, but this just shows that things get a little more complicated when you're trying to apply functions across list objects; things like dimensions, types, NULLs, can cause problems. If I'm trying something new, I'll usually try and develop the methods on a subset of the list that I know is "ideal", make sure it works there, and then try the operation on progressively more complicated lists. That allows me to separate errors in my functions vs. problems reading in "odd" data types. 
 
 ```{r}
 
@@ -412,7 +412,7 @@ How to move around in lists effectively
 
 ## Analysis with `purrr` and `modelr`
 
-So far, `purrr` has basically helped us use tidy operations on lists. That's nice, but its real power comes in helping with analysis. Let's look at the gapminder dataset
+So far, `purrr` has basically helped us use tidy operations on lists. That's nice, but its real power comes in helping with analysis. Let's look at the gapminder data set
 
 ```{r}
 
@@ -514,7 +514,7 @@ model_frame
 So, AIC tells us that our über complicated model is still the most parsimonious. Let's dig into this a bit further, by explicitly testing the out of sample predictive ability of each of the models. "Overfit" models are commonly really good at describing the data that they are fit to, but perform poorly out of sample. 
 
 
-We'll start by using the `modelr` package to create a bunch of training-test combination datasets
+We'll start by using the `modelr` package to create a bunch of training-test combination data sets
 
 ```{r}
 
