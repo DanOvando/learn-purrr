@@ -4,8 +4,16 @@ author: "Dan Ovando"
 date: "2/17/2017"
 output:
   html_document:
+<<<<<<< HEAD
   toc: yes
   toc_float: yes
+=======
+    toc: yes
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+>>>>>>> master
 ---
 
 ```{r setup, include=FALSE}
@@ -619,7 +627,7 @@ map_df(factor_foo)
 
 ```
 
-## Center and Scale
+### Center and Scale
 
 One problem with our earlier regression: the scales of the different variables are widlly our of proportion
 
@@ -675,7 +683,7 @@ omit_names = 'year'
 
 ```
 
-## Save all plots
+### Save all plots
 
 Suppose you've got a large project and want to save (or print) all the plots. This often leads to a lot of copy and pasting of save commands, etc.
 
@@ -720,7 +728,7 @@ walk(plot_files, plot_foo)
 ```
 
 
-## Partial
+### Partial
 
 I just really like this one. Suppose you've got something that you are copy and pasting a lot, like getting the upper and lower CI of something
 
