@@ -6,9 +6,6 @@ output:
   html_document:
   toc: yes
   toc_float: yes
-'html_notebook:':
-  toc: yes
-  toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
