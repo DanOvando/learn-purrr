@@ -1,15 +1,4 @@
----
-title: "Practicing `purrr`"
-author: "Dan Ovando"
-date: "2/17/2017"
-output:
-  html_document:
-  toc: yes
-  toc_float: yes
-'html_notebook:':
-  toc: yes
-  toc_float: yes
----
+See documents/learn_purrr.Rmd for the full version 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
