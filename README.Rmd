@@ -37,20 +37,20 @@ The goal of this workshop and document is to get you familiar with the workings 
 
 Full credit to Jenny Bryan's [excellent `purrr` tutorial](https://jennybc.github.io/purrr-tutorial/) for many of the ideas here, along with Hadley Wickham & Garret Grolemund's [R for Data Science](http://r4ds.had.co.nz). My goal is to walk you through some of the concepts outlined in these (much better) resources, and expand on some particular applications that have been useful to me.
 
-
 ## What is `purrr`?
 
 
-`purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R. It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At it's most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data.
+`purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R (and a whole lot more). It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data.
 
 There are a whole suite of functions involved with `purrr`, but the goal of this tutorial is to get the fundamentals down so that you can start incorporating `purrr` into your own code and explore higher-level abilities on your own.
 
 ### Key verbs
 
-- `map` is the workhorse of the `purrr` family. It is basically `apply`
-- The basic syntax:
+`map` is the workhorse of the `purrr` family. It is basically `apply`
 
-`map("Lists to apply function to","Function to apply across lists","Additional parameters")`
+  - The basic syntax:
+
+  - `map("Lists to apply function to","Function to apply across lists","Additional parameters")`
 
 ```{r}
 
@@ -58,23 +58,24 @@ map(mtcars, mean, na.rm = T)
 
 ```
 
+  - `map` by default returns a list
 
+  - `map_TYPE` returns an object of class TYPE
 
-`map` by default returns a list
+    - `map_lgl` returns logical objects
 
-`map_TYPE` returns an object of class TYPE
-
-`map_lgl` returns logical objects
-
-`map_df` returns data frames, etc.
+    - `map_df` returns data frames, etc.
 
 Specifying type makes it easier to wrangle different types of outputs
 
-`map` applies a function over one list.
+`map` can also be extended to deal with multiple input lists
 
-`map2` applies a function over combinations of two lists in the form
+  - `map` applies a function over one list.
 
-`map2(list1, list2, function, ...)`
+  - `map2` applies a function over combinations of two lists in the form
+
+  - `map2(list1, list2, ~function(.x,.y), ...)`
+
 
 ```{r}
 
@@ -82,59 +83,61 @@ map2_chr(c('one','two','red','blue'), c('fish'), paste)
 
 ```
 
-Under earlier versions, `map3` was for 3 lists, etc.
+`purrr` is smart enough to help you with some basic stuff, like guessing that I'm trying to do with paste here. A lot of times that won't work and you have to be more specific though. In this example, we can do the exact same thing with
 
-Now, anything above two lists is handled by `pmap`
+
+```{r}
+
+map2_chr(c('one','two','red','blue'), c('fish'), ~paste(.x,.y))
+
+```
+
+`map3` was for 3 lists, where each list is now .x,.y,.z. 
+
+Anything above three lists is handled by `pmap`
 
 ```
 pmap(list(list1,list2,list3), function,...)
 
 ```
 
-This is where things start to improve substantially on `apply`: instead of having to smash all the things you want to apply a function over into one data frame, you can easily pass multiple named inputs to a function
-
-Let's start with the `got_chars` data from the `repurrrsive` package
-
-```{r}
-library(repurrrsive)
-str(got_chars, list.len = 3)
-```
-
-
-Suppose we wanted to figure out how many aliases and alliances each character has, as well as where they were born. We can use `pmap` to apply a function over each of these attributes
-
-```{r}
-got_list <- got_chars %>%
-  map(`[`, c('name','aliases','allegiances','born'))
-
-got_list <-  got_chars %>% {
-  list(
-    name = map_chr(.,'name'),
-    aliases = map(.,'aliases'),
-    allegiances = map(.,'allegiances'),
-    born = map_chr(.,'born')
-  )
-}
-
-str(got_list, list.len = 3)
-
-got_foo <- function(name, aliases, allegiances,born){
-
-  paste(name, 'has', length(aliases), 'aliases and', length(allegiances),
-        'allegiances, and was born in', born)
-
-}
-
-got_list %>%
-  pmap_chr(got_foo) %>%
-  head()
-
-```
-
+This is where things start to improve substantially on `apply`: instead of having to smash all the things you want to apply a function over into one data frame, you can easily pass multiple named inputs to a function. 
 
 Getting used to using `map` is the foundation to working with `purrr`.
 
 We'll now go into more detail on ways to use this in a practical way.
+
+To bring this part together, here are three ways of doing the exact same thing, checking to see if all the rows in a data frame are NA
+
+```{r}
+
+x <- c(1,1,NA,NA)
+
+y <-  c(1, NA, 1, NA)
+
+z <-  data_frame(x = x, y = y)
+
+myfoo <- function(x,y){
+
+
+out <- (is.na(x) & is.na(y))
+
+}
+
+
+map(z, sum)
+
+z %>%
+mutate(both_na = map2_lgl(x,y,myfoo))
+
+z %>%
+mutate(both_na = map2_lgl(x,y, ~ is.na(.x) & is.na(.y)))
+
+z %>%
+mutate(both_na = pmap_lgl(list(x = x,y = y), myfoo))
+
+
+```
 
 
 ## Functional programming
@@ -157,12 +160,12 @@ foo <- function(x,y) {
   return(z)
 }
 
-foo(2,3)
+foo(x = 2,y = 3)
 
 z
 ```
 
-Notice that `z` wasn't affected by the `z` inside the function. Operations inside functions happen in the local environment of that function. "What happens in the function, stays in the function (except what you share on Facebook)"
+Notice that `z` wasn't affected by the `z` inside the function. Operations inside functions happen in the local environment of that function. "What happens in the function, stays in the function (except what you share via Facebook/`return`)"
 
 Note though that functions can "see" objects in the global environment
 
@@ -177,7 +180,7 @@ z <- x + y + a
 return(z)
 }
 
-foo(2,3)
+foo(x = 2, y = 3)
 
 
 ```
@@ -221,49 +224,15 @@ mtcars %>%  {
 
 The `{` after the pipe tells R that the things inside the brackets don't take the data passed to it as its first argument
 
-```{r}
-
-x <- c(1,1,NA,NA)
-
-y <-  c(1, NA, 1, NA)
-
-z <-  data_frame(x = x, y = y)
-
-myfoo <- function(x,y){
-
-
-out <- (is.na(x) & is.na(y))
-
-}
-
-
-map(z, sum)
-
-z %>%
-mutate(both_na = map2_lgl(x,y,myfoo))
-
-z %>%
-mutate(both_na = map2_lgl(x,y, ~ is.na(.x) & is.na(.y)))
-
-z %>%
-mutate(both_na = pmap_lgl(list(x = x,y = y), myfoo))
-
-
-```
-
-
 ## Wrangling lists
 
 Let's get back to actually using `purrr` in practice.
-
 
 Lists are powerful objects that allow you to store all kinds of information in one place.
 
 They can also be a pain to deal with, since we are no longer in the nice 2-D structure of a traditional data frame.
 
-`purrr` has all kinds of useful tools for helping you quickly and efficiently deal with parts of lists.
-
-Let's start with the Game of Thrones database in the `repurrrsive` package.
+`purrr` has all kinds of useful tools for helping you quickly and efficiently poke around inside lists. Let's start with the Game of Thrones database in the `repurrrsive` package. This is a list containing a bunch of information on GoT characters with a "point of view" chapter in the first few books. 
 
 The `str` function is a great way to get a first glimpse at a list's structure
 
@@ -285,15 +254,30 @@ listviewer::jsonedit(got_chars)
 
 So, how do we start poking around in this database?
 
-Suppose we wanted only the first 5 characters named
+Suppose we wanted only the first 5 characters in the list
 
 ```{r}
 
-got_chars[1:5]
+got_chars[1:5] %>% 
+  str(max.level = 1)
 
 ```
 
-Now, suppose that we jut want to look at the name of the first 5 characters
+Now, suppose that we jut want to look at the name of the first 5 characters. Who remembers how to do this in base R?
+
+Me neither. 
+
+
+```{r}
+
+got_chars[[1]]$name
+
+got_chars[[2]]$name
+
+```
+
+
+Here's how we do that in `purrr`
 
 ```{r}
 
@@ -302,24 +286,11 @@ got_chars[1:5] %>%
 
 ```
 
-If you're like me, the numeric indexing of each of the entries is currently driving you nuts: I'd rather have each element in the list be named by the character it refers to
+`map` figures that when you do this, you're looking for that list entry. I actually find some of the "helps" a bit confusing when you're learning, since they play by slightly different rules than the `purrr` functions usually do. Case in point, given the above example, how do we think we might get the 'name' and 'allegiances' columns?
 
 ```{r}
 
 got_chars[1:5] %>%
-  set_names(map_chr(.,'name')) %>%
-  listviewer::jsonedit()
-
-```
-
-Much better!
-
-  Now, suppose that I want more than just the names
-
-```{r}
-
-got_chars[1:5] %>%
-  set_names(map_chr(.,'name')) %>%
   map(c('name','allegiances')) %>%
   listviewer::jsonedit()
 
@@ -333,6 +304,34 @@ set_names(map_chr(., 'name')) %>%
 map(`[`, c('name', 'allegiances')) %>%
 listviewer::jsonedit()
 ```
+
+In this case, `[` is basically saying use `[]` as a function. There a bunch of these hidden in `purrr` which are a little complicated at first, but this is the most common. 
+
+One more example, let's say you've got a list that goes a little deeper, same rules apply. 
+
+```{r}
+
+thing <- list(list(y = 2, z = list(w = 'hello')),
+              list(y = 2, z = list(w = 'world')))
+
+str(thing)
+
+map_chr(thing, c('z','w'))
+
+```
+
+
+If you're like me, the numeric indexing of each of the entries is currently driving you nuts: I'd rather have each element in the list be named by the character it refers to
+
+```{r}
+
+got_chars[1:5] %>%
+  set_names(map_chr(.,'name')) %>%
+  listviewer::jsonedit()
+
+```
+
+Much better! Now, suppose that I want more than just the names
 
 Now, let's say that I want to get all the Lanisters, so I can see which people to hate.
 
@@ -377,7 +376,9 @@ keep(~ifelse(length(.$allegiances) > 0, str_detect(.$allegiances, 'Stark'),FALSE
 listviewer::jsonedit()
 
 ```
+
 As Cersei likes to remind us, anyone who's not a Lannister is an enemy to the Lannisters. Let's look at all the POV characters that aren't allied to the Lannisters
+
 
 ```{r}
 got_chars %>%
@@ -388,9 +389,39 @@ got_chars %>%
 
 ```
 
-Things obviously get a lot more complicated than this, but hopefully that gives you an idea of how to manipulate lists using `purrr`
 
-The last thing we might want to go over is converting to and from data frames and lists. Life is obviously easier with data frames, and a lot of the time we can massage aspects of lists that we care about into data frames (especially using list columns).
+You can also use `map` together with your own custom functions. Suppose we wanted to figure out how many aliases and alliances each character has, as well as where they were born. We can use `pmap` to apply a function over each of these attributes
+
+```{r}
+
+got_list <- got_chars %>%
+  map(`[`, c('name','aliases','allegiances','born'))
+
+got_list <-  got_chars %>% {
+  list(
+    name = map_chr(.,'name'),
+    aliases = map(.,'aliases'),
+    allegiances = map(.,'allegiances'),
+    born = map_chr(.,'born')
+  )
+}
+
+str(got_list, list.len = 3)
+
+got_foo <- function(name, aliases, allegiances,born){
+
+  paste(name, 'has', length(aliases), 'aliases and', length(allegiances),
+        'allegiances, and was born in', born)
+
+}
+
+got_list %>%
+  pmap_chr(got_foo) %>%
+  head()
+
+```
+
+Things obviously get a lot more complicated than this, but hopefully that gives you an idea of how to manipulate lists using `purrr`
 
 ```{r}
 
@@ -400,15 +431,6 @@ got_chars %>%
   listviewer::jsonedit()
 
 ```
-
-
-Basic loops
-
-
-
-How to move around in lists effectively
-
-- Manipulating independent lists
 
 ## Analysis with `purrr` and `modelr`
 
