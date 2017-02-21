@@ -621,6 +621,83 @@ labs(x = 'Root Mean Squared Error', title = 'Cross-validated distribution of RMS
 
 That's a broad tour of the key features of `purrr`. Here's a few more examples of miscellaneous things you can do with `purrr`
 
+
+### `safely`
+
+One annoying thing about using `map` (or `apply`) in place of loops is that it can make debugging much harder to deal with. With a loop, it can be a lot easier to see where exactly an error occured and your loop failed (e.g. look at the index of the loop when the error occured). With `map`, it can be much harder to figure out where the problem is, especially if you have a very large object. 
+
+The `safely` function let's us solve this problem. 
+
+Suppose that you've got a bunch of csv's of fish lengths from a field site. The field techs are supposed to enter the length in one column, and the units in a second column. As tends to happen though, someone put the units next to the length in one entry (e.g. 26cm). How do we deal with that?
+
+```{r}
+
+
+fish_foo <- function(){
+  
+  bad_tech <- ifelse(runif(1,0,10) > 2, FALSE, TRUE)
+                     
+  if (bad_tech == F)
+  {
+   lengths <- rnorm(10,25,5) %>% signif(3)
+   
+   units = 'cm'
+  } else {
+   lengths <-  paste0(rnorm(10,25,5) %>% signif(3),'cm')
+   
+   units <- "what's this column for?"
+  }
+
+  out <- data_frame(lengths = lengths, units = units)
+  return(out)
+}
+
+length_data <-  rerun(100, fish_foo()) %>% 
+  set_names(paste0('tech',1:100))
+
+listviewer::jsonedit(length_data)
+
+```
+
+Our goal is to put all of these observations together, log transform the lengths, and plot. 
+
+```{r, eval = F}
+
+length_data %>% 
+  map(log,.$lengths)
+
+```
+
+Yep, that doesn't work, since `map` hit an error somewhere in there. Now, we could go through all 100 entries and see which ones are bad, or concatenate them earlier and look for NAs after conversion to type numeric, but let's see how we can use `purrr` to deal with this. 
+
+```{r}
+
+safe_log <-  safely(log)
+
+diagnose_length <- length_data %>% 
+  map(~safe_log(.$lengths))
+
+listviewer::jsonedit(diagnose_length)
+
+```
+
+Great, now we at least have something to work with. `safely` gives us two objects per entry: the data if it worked, and a log of the error messages. 
+
+How do we figure out which tech's are the problem? We can use `purrr`'s `transpose` to make things a little easier to look at
+
+```{r}
+
+diagnose_length <- diagnose_length %>% 
+ purrr::transpose() 
+
+listviewer::jsonedit(diagnose_length)
+
+bad_techs <-  diagnose_length$error %>% 
+  keep(~is.null(.) == F)
+
+names(bad_techs)
+```
+
 ### Check on factors
 
 Factors can creep into your data, especially if you're reading in .csv's using base R. There's lot's of ways to solve this, but you can use `purrr` to efficiecntly check for factors, and convert them to characters in your dataframe.
