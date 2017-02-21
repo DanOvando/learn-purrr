@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 *.pdf
+*.html
+*.knit.md
+.html

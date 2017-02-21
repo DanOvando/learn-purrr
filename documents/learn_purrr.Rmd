@@ -3,15 +3,16 @@ title: "Practicing `purrr`"
 author: "Dan Ovando"
 date: "2/17/2017"
 output:
-  html_notebook:
+  html_document:
     toc: yes
     toc_float: yes
-  html_document:
+  html_notebook:
     toc: yes
     toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
+set.seed(123)
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(purrr)
@@ -21,9 +22,10 @@ library(ggthemes)
 library(gapminder)
 library(modelr)
 
-
-theme_update(text =  element_text(family = 'Arial Narrow',
+pres_theme <- theme_light() + 
+  theme(text =  element_text(family = 'Arial Narrow',
                                   size = 16))
+theme_set(pres_theme)
 
 ```
 
@@ -39,10 +41,61 @@ Full credit to Jenny Bryan's [excellent `purrr` tutorial](https://jennybc.github
 
 ## What is `purrr`?
 
-
 `purrr` is a part of the tidyverse, taking on the tasks accomplished by the `apply` suite of functions in base R (and a whole lot more). It's great at applying operations across many dimensions of your data, improving your ability to keep even complex analyses "tidy". At it's simplest, it's just another way to use `apply`. At its most complex, it allows you to easily move around in and manipulate multi-dimensional (and multi-type) data.
 
 There are a whole suite of functions involved with `purrr`, but the goal of this tutorial is to get the fundamentals down so that you can start incorporating `purrr` into your own code and explore higher-level abilities on your own.
+
+## Why not loops?
+
+Let's start with this PSA: **loops aren't bad!**
+
+For some problems (e.g. population models, or really any dynamic process where the current state depends on past states), loops are really the simplest option. 
+
+For other problems, things might work a little faster if you used something like `purrr`, but the amount of time required to set it up might not be worth it. 
+
+The reason to move away from loops is when doing so really helps you solve a problem, not when it makes your code look fancier. 
+
+To work backwords then, `apply`, and `map` basically take on the tasks of a `for` loop
+
+```{r}
+
+shades <- colors()[1:10]
+
+for (i in seq_along(shades)){
+  
+  print(shades[i])
+  
+}
+
+```
+
+using apply
+```{r}
+
+a <-  lapply(shades, print)
+
+```
+
+using `map`
+
+```{r}
+
+a <-  map(shades, print)
+
+```
+
+This is obviously a trivial example, but you get the idea: these are three ways of going through a thing, and applying a function to each value of that thing. 
+
+
+The (main) advantages of using things like `apply` or `map` though are though that they
+
+1. Allow you to easily escape writing nested for loops
+
+2. Don't require you to pre-allocate space 
+
+3. Can be easily plugged into other more complex operations (e.g. in a pipe)
+
+4. Can be easier to read
 
 ### Key verbs
 
@@ -681,6 +734,8 @@ listviewer::jsonedit(diagnose_length)
 
 ```
 
+
+
 Great, now we at least have something to work with. `safely` gives us two objects per entry: the data if it worked, and a log of the error messages. 
 
 How do we figure out which tech's are the problem? We can use `purrr`'s `transpose` to make things a little easier to look at
@@ -698,9 +753,23 @@ bad_techs <-  diagnose_length$error %>%
 names(bad_techs)
 ```
 
+I leave it to your imagination to think of how to resolve this problem, but at least we now know where the problem is.
+
+```{r}
+
+possibly_log <-  possibly(log, otherwise = NA)
+
+
+diagnose_length <- length_data %>% 
+  map(~possibly_log(.$lengths))
+
+listviewer::jsonedit(diagnose_length)
+
+```
+
 ### Check on factors
 
-Factors can creep into your data, especially if you're reading in .csv's using base R. There's lot's of ways to solve this, but you can use `purrr` to efficiecntly check for factors, and convert them to characters in your dataframe.
+Factors can creep into your data, especially if you're reading in .csv's using base R, or getting data from other people.  There's lot's of ways to solve this, but you can use `purrr` to efficiently check for factors, and convert them to characters in your data frame.
 
 ```{r}
 
@@ -742,7 +811,7 @@ map_df(factor_foo)
 
 ### Center and Scale
 
-One problem with our earlier regression: the scales of the different variables are widlly our of proportion
+One problem with our earlier regression: the scales of the different variables are wildly our of proportion
 
 ```{r}
 
@@ -750,7 +819,7 @@ summary(gapminder %>% select(year,lifeexp, pop, gdppercap))
 
 ```
 
-This can can make your regression a little hard to interpret. Hhow do you think about the intercept in this model for example? Or, how do you compare the relative magnitude of coefficients? An increase of 1 year life expectancy is a much bigger shift and an increase in population of 1.
+This can can make your regression a little hard to interpret. How do you think about the intercept in this model for example? Or, how do you compare the relative magnitude of coefficients? An increase of 1 year life expectancy is a much bigger shift and an increase in population of 1.
 
 You can "center and scale" you data to resolve this problem, generally by
 
@@ -783,7 +852,7 @@ center_scale
 
 ```
 
-Looks good, except for the year thing. We're treating year as a continuos variable in our model. Suppose though we want to treat it as a factor, so that there doesn't have to be one slope for year. Remember that we can pass additional parameters through `map`
+Looks good, except for the year thing. We're treating year as a continuous variable in our model. Suppose though we want to treat it as a factor, so that there doesn't have to be one slope for year. Remember that we can pass additional parameters through `map`
 
 ```{r}
 
@@ -816,6 +885,7 @@ life_v_money_plot
 
 ```
 
+
 ```{r}
 
 life_v_time_plot <- gapminder %>%
@@ -825,6 +895,7 @@ geom_smooth(method = 'lm')
 
 life_v_time_plot
 ```
+
 
 
 Suppose I want to save both of these plots?
@@ -884,4 +955,10 @@ gapminder %>%
 ```
 
 
+Thanks!
+
+Go get your code `purrr`ing
+
+![](../Exploding-Kittens.jpg)
+[The Oatmeal](theoatmeal.com)
 

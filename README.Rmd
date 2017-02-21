@@ -21,9 +21,10 @@ library(ggthemes)
 library(gapminder)
 library(modelr)
 
+pres_theme <- theme_fivethirtyeight(base_size = 16, base_family = 'Arial Narrow') + 
+  theme(axis.title = element_text())
 
-theme_update(text =  element_text(family = 'Arial Narrow',
-                                  size = 16))
+theme_set(pres_theme)
 
 ```
 
@@ -582,7 +583,7 @@ That's a broad tour of the key features of `purrr`. Here's a few more examples o
 
 ### Check on factors
 
-Factors can creep into your data, especially if you're reading in .csv's using base R. There's lot's of ways to solve this, but you can use `purrr` to efficiecntly check for factors, and convert them to characters in your dataframe.
+Factors can creep into your data, especially if you're reading in .csv's using base R. There's lot's of ways to solve this, but you can use `purrr` to efficiently check for factors, and convert them to characters in your data frame.
 
 ```{r}
 
@@ -624,7 +625,7 @@ map_df(factor_foo)
 
 ### Center and Scale
 
-One problem with our earlier regression: the scales of the different variables are widlly our of proportion
+One problem with our earlier regression: the scales of the different variables are wildly our of proportion
 
 ```{r}
 
@@ -632,7 +633,7 @@ summary(gapminder %>% select(year,lifeexp, pop, gdppercap))
 
 ```
 
-This can can make your regression a little hard to interpret. Hhow do you think about the intercept in this model for example? Or, how do you compare the relative magnitude of coefficients? An increase of 1 year life expectancy is a much bigger shift and an increase in population of 1.
+This can can make your regression a little hard to interpret. How do you think about the intercept in this model for example? Or, how do you compare the relative magnitude of coefficients? An increase of 1 year life expectancy is a much bigger shift and an increase in population of 1.
 
 You can "center and scale" you data to resolve this problem, generally by
 
@@ -665,7 +666,7 @@ center_scale
 
 ```
 
-Looks good, except for the year thing. We're treating year as a continuos variable in our model. Suppose though we want to treat it as a factor, so that there doesn't have to be one slope for year. Remember that we can pass additional parameters through `map`
+Looks good, except for the year thing. We're treating year as a continuous variable in our model. Suppose though we want to treat it as a factor, so that there doesn't have to be one slope for year. Remember that we can pass additional parameters through `map`
 
 ```{r}
 
